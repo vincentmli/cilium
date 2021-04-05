@@ -143,10 +143,20 @@ func (s *Speaker) OnUpdateEndpoints(eps *slim_corev1.Endpoints) {
 	}
 }
 
+// OnAddNode notifies the Speaker of a new node.
+func (s *Speaker) OnAddNode(node *slim_corev1.Node) error { return nil }
+
 // OnUpdateNode notifies the Speaker of an update to a node.
-func (s *Speaker) OnUpdateNode(node *slim_corev1.Node) {
-	s.queue.Add(nodeEvent(&node.Labels))
+func (s *Speaker) OnUpdateNode(oldNode, newNode *slim_corev1.Node) error {
+	s.queue.Add(nodeEvent{
+		labels:   newNode.Labels,
+		podCIDRs: podCIDRs(newNode),
+	})
+	return nil
 }
+
+// OnDeleteNode notifies the Speaker of a node deletion.
+func (s *Speaker) OnDeleteNode(node *slim_corev1.Node) error { return nil }
 
 // RegisterSvcCache registers the K8s watcher cache with this Speaker.
 func (s *Speaker) RegisterSvcCache(cache endpointsGetter) {
